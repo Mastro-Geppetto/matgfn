@@ -15,6 +15,11 @@ We wanted to find materials with commercial prospects. One of the criterion is d
 
 All our changes are put in `Update_reward_function_GSA_and_VA` branch of this repo 
 
+List of changes
+- dataset/dataset_new.json : contains 100,000 new sequences based on new reward function
+- notebooks/GFlowNet_VolumetricAnalysis.ipynb : you will have to run to see the generated structure as github dioesn't render extra widgets
+- train_agent.py : added `volume_area_reward` and updated the reward function to use this
+
 # Citation
 
 ```
