@@ -11,6 +11,8 @@ Results are reported in [Discovery of New Reticular Materials for Carbon Dioxide
 
 We wanted to find materials with commercial prospects. One of the criterion is density. Materials with higher volumetic surface area will take less space. We updated the reward function to consider both Gravimetric surface area and volumetric surface area.
 
+![equation](https://latex.codecogs.com/svg.image?&space;R(x)=(\mathit{Cost}-\mathit{Cutoff})*e^{\tfrac{\mathit{Cost}-\mathit{Cutoff}}{\mathit{Cutoff}}}\mathit{Cost=GSA&plus;VA})
+
 All our changes are put in `Update_reward_function_GSA_and_VA` branch of this repo 
 
 # Citation
