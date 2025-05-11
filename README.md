@@ -7,6 +7,12 @@ The `reticular` module implements utility functions to generate reticular materi
 
 Results are reported in [Discovery of New Reticular Materials for Carbon Dioxide Capture using GFlowNets](https://arxiv.org/abs/2310.07671).
 
+# Changes
+
+We wanted to find materials with commercial prospects. One of the criterion is density. Materials with higher volumetic surface area will take less space. We updated the reward function to consider both Gravimetric surface area and volumetric surface area.
+
+All our changes are put in `Update_reward_function_GSA_and_VA` branch of this repo 
+
 # Citation
 
 ```
