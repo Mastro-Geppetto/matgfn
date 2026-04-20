@@ -11,13 +11,18 @@ if not NETWORK:
     print("Set path for zeo++-0.3/network")
     exit(1)
 
+run_name = os.getenv("RUN_NAME", "")
+if run_name == "":
+    print("RUN_NAME environment variable is not set.")
+    exit(1)
+
 import sys
 sys.path.append("./src")
 
 from logging.handlers import RotatingFileHandler
 # each run will have a unique log file with datetime stamp
 time_now = datetime.utcnow().strftime("%Y%m%d-%H:%M:%S.%f")
-log_file_name = 'agent_training.log'
+log_file_name = run_name + '_agent_training.log'
 # Create a rotating file handler
 MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 BACKUP_COUNT = 100    # Keep 100 backup files
@@ -65,7 +70,7 @@ def volume_area_reward(sequence, builder):
 
     mof=builder.make_pormake_mof(sequence)
 
-    name_root='temp'
+    name_root=run_name+'temp'
     cif_name=name_root+'.cif'
     vol_name=name_root+'.vol'
     
@@ -107,7 +112,7 @@ def surface_area_reward(sequence, builder):
 
     mof=builder.make_pormake_mof(sequence)
 
-    name_root='temp'
+    name_root=run_name+'temp'
     cif_name=name_root+'.cif'
     sa_name=name_root+'.sa'
     
@@ -255,14 +260,19 @@ loss_cutoff=1.8
 
 for name in topology_names:
 
+    if run_name != name:
+        continue
+
+    logger.info(f'{name} no edges start')
     include_edges=False
     builder=PormakeStructureBuilder(topology_string=name,include_edges=include_edges)
     run_name=name+'_no_edges'
     train_agent(builder=builder,loss_threshold=loss_cutoff,run_name=run_name,cutoff=cutoff)
-    print(name, 'no edges done')
+    logger.info(f'{name} no edges done')
         
+    logger.info(f'{name} edges start')
     include_edges=True
     builder=PormakeStructureBuilder(topology_string=name,include_edges=include_edges)
     run_name=name+'_edges'
     train_agent(builder=builder,loss_threshold=loss_cutoff,run_name=run_name,cutoff=cutoff)
-    print(name, 'edges done')
+    logger.info(f'{name} edges done')
