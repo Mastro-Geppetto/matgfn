@@ -1,5 +1,38 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from datetime import datetime
+import os
+import logging
+
+# Path to zeo++-0.3/network
+NETWORK=os.getenv('NETWORK', '')
+if not NETWORK:
+    print("Set path for zeo++-0.3/network")
+    exit(1)
+
 import sys
-sys.path.append("../src")
+sys.path.append("./src")
+
+from logging.handlers import RotatingFileHandler
+# each run will have a unique log file with datetime stamp
+time_now = datetime.utcnow().strftime("%Y%m%d-%H:%M:%S.%f")
+log_file_name = 'agent_training.log'
+# Create a rotating file handler
+MAX_BYTES = 10 * 1024 * 1024  # 10 MB
+BACKUP_COUNT = 100    # Keep 100 backup files
+format = '%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s'
+debug_handler = RotatingFileHandler(
+    filename=log_file_name,
+    maxBytes=MAX_BYTES,
+    backupCount=BACKUP_COUNT
+)
+logging.basicConfig(
+    level=logging.INFO,#DEBUG,
+    format=format,
+    handlers=[debug_handler]  # Add the handler to basicConfig
+)
+logger = logging.getLogger(__name__)
 
 import os
 from matgfn.gflow.environments.sequence import SequenceEnvironment
@@ -11,6 +44,8 @@ import subprocess
 
 import math
 import torch
+
+logger.info("starting main")
 
 def property_to_reward(prop, cutoff):
 
@@ -35,11 +70,12 @@ def volume_area_reward(sequence, builder):
     vol_name=name_root+'.vol'
     
     mof.write_cif(cif_name)
+    logger.debug(f"wrote {cif_name}")
 
     if os.path.exists(cif_name)==False:
         return 0
 
-    command=(['./network']  + ['-vol'] + ['1.525'] + ['1.525'] + ['2000'] + [cif_name])
+    command=([NETWORK] + ['-vol'] + ['1.525'] + ['1.525'] + ['2000'] + [cif_name])
     subprocess.run(command,stdout=subprocess.DEVNULL)
 
     if os.path.exists(vol_name) == False:
@@ -50,6 +86,7 @@ def volume_area_reward(sequence, builder):
         for line in result_file:
             lines.append(line.rstrip())
     result_file.close()
+    logger.debug(f"wrote {vol_name}")
 
     if len(lines)==0:
         return 0
@@ -75,11 +112,12 @@ def surface_area_reward(sequence, builder):
     sa_name=name_root+'.sa'
     
     mof.write_cif(cif_name)
+    logger.debug(f"wrote {cif_name}")
 
     if os.path.exists(cif_name)==False:
         return 0
 
-    command=(['./network']  + ['-sa'] + ['1.525'] + ['1.525'] + ['2000'] + [cif_name])
+    command=([NETWORK] + ['-sa'] + ['1.525'] + ['1.525'] + ['2000'] + [cif_name])
     subprocess.run(command,stdout=subprocess.DEVNULL)
 
     if os.path.exists(sa_name) == False:
@@ -90,6 +128,7 @@ def surface_area_reward(sequence, builder):
         for line in result_file:
             lines.append(line.rstrip())
     result_file.close()
+    logger.debug(f"wrote {sa_name}")
 
     if len(lines)==0:
         return 0
@@ -124,7 +163,7 @@ def build_agent(builder,cutoff):
     
     flow_model =  LSTM(token_vocabulary=token_vocabulary, n_actions=env.action_space.n)
     agent = TrajectoryBalanceGFlowNet(env, flow_model)
-
+    logger.info("agent created")
     return agent
 
 def train_agent(builder, loss_threshold, run_name, cutoff):
@@ -144,7 +183,9 @@ def train_agent(builder, loss_threshold, run_name, cutoff):
 
     continue_training=True
 
+    logger.info("start training")
     while continue_training==True:
+        logger.info("train..")
 
         observations, infos, rewards, losses, logZs = agent.fit(learning_rate=5e-3, num_episodes=5000, minibatch_size=5)
 
@@ -164,6 +205,7 @@ def train_agent(builder, loss_threshold, run_name, cutoff):
                 
         current_mean_loss=sum(test_losses)/len(test_losses)
         print('current loss =',current_mean_loss)
+        logger.info(f'loss current {current_mean_loss} last {last_mean_loss} all loss count {len(all_losses)}')
 
         if current_mean_loss > last_mean_loss*0.95 and current_mean_loss < last_mean_loss:
             if current_mean_loss < 50:
@@ -187,10 +229,13 @@ def train_agent(builder, loss_threshold, run_name, cutoff):
     all_logZs+=logZs
 
     agent_name=run_name+'_agent.pkl'
+    os.makedirs('trained_agents', exist_ok=True)
     agent_path=os.path.join('trained_agents',agent_name)
     torch.save(agent.state_dict(), agent_path)
+    logger.info(f'save agent at :{agent_path}')
 
     training_log_name=run_name+'_training_log.txt'
+    os.makedirs('training_logs', exist_ok=True)
     training_log_path=os.path.join('training_logs',training_log_name)
 
     with open(training_log_path,'w') as f:

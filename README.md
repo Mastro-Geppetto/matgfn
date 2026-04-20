@@ -53,5 +53,12 @@ pip install --upgrade pip
 
 # This pulls all dependencies
 pip install -e matgfn
+
+# Install external lib installation : zeo++
+zeo++ is an open source software for performing high-throughput geometry-based analysis of porous materials and their voids.
+wget http://www.zeoplusplus.org/zeo++-0.3.tar.gz
+tar -xzvf zeo++-0.3.tar.gz
+cd zeo++-0.3/voro++/src && make
+cd zeo++-0.3/ && make
 ```
 
