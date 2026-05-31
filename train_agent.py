@@ -5,12 +5,6 @@ from datetime import datetime
 import os
 import logging
 
-# Path to zeo++-0.3/network
-NETWORK=os.getenv('NETWORK', '')
-if not NETWORK:
-    print("Set path for zeo++-0.3/network")
-    exit(1)
-
 run_name = os.getenv("RUN_NAME", "")
 if run_name == "":
     print("RUN_NAME environment variable is not set.")
@@ -38,6 +32,14 @@ logging.basicConfig(
     handlers=[debug_handler]  # Add the handler to basicConfig
 )
 logger = logging.getLogger(__name__)
+
+# Path to zeo++-0.3/network
+NETWORK = os.getenv('NETWORK', '')
+if not NETWORK:
+    print("Set path for zeo++-0.3/network")
+    logger.error("Set path for zeo++-0.3/network")
+    exit(1)
+
 
 import os
 from matgfn.gflow.environments.sequence import SequenceEnvironment
@@ -254,7 +256,7 @@ def train_agent(builder, loss_threshold, run_name, cutoff):
 
     return 
 
-topology_names=['tsg','cdl-e','cdz-e', 'eft', 'ffc', 'tff', 'asc', 'dmg', 'dnq', 'fso', 'urj']
+topology_names=['asc', 'ats', 'cdl-e','cdz-e', 'dmg', 'dnq', 'eft', 'ffc', 'fso', 'tff', 'tsg', 'urj']
 cutoff=5000+500 # for both GSA & VSA
 loss_cutoff=1.8
 
@@ -263,12 +265,12 @@ for name in topology_names:
     if run_name != name:
         continue
 
-    logger.info(f'{name} no edges start')
-    include_edges=False
-    builder=PormakeStructureBuilder(topology_string=name,include_edges=include_edges)
-    run_name=name+'_no_edges'
-    train_agent(builder=builder,loss_threshold=loss_cutoff,run_name=run_name,cutoff=cutoff)
-    logger.info(f'{name} no edges done')
+    # logger.info(f'{name} no edges start')
+    # include_edges=False
+    # builder=PormakeStructureBuilder(topology_string=name,include_edges=include_edges)
+    # run_name=name+'_no_edges'
+    # train_agent(builder=builder,loss_threshold=loss_cutoff,run_name=run_name,cutoff=cutoff)
+    # logger.info(f'{name} no edges done')
         
     logger.info(f'{name} edges start')
     include_edges=True
